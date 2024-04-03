@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("api/v1/city")
 public class CityController {
     private final CityService cityService;
-    private final PostCodeService coinCapService;
+    private final PostCodeService postCodeService;
 
     @PostMapping
     public ResponseEntity<City> create(@RequestBody City city){
@@ -43,10 +43,10 @@ public class CityController {
     @PutMapping("/{city_id}/postcode/{post_id}")
     City addCryptoToCity(@PathVariable("city_id") Long cityId, @PathVariable("post_id") Long postId){
         City city = cityService.getCityById(cityId);
-        ZipCodeData zipCodeData = coinCapService.getPostCodeDataById(postId);
+        ZipCodeData zipCodeData = postCodeService.getPostCodeDataById(postId);
         city.addCrypto(zipCodeData);
         zipCodeData.setCity(city);
-        coinCapService.updatePostCodeData(postId, zipCodeData);
+        postCodeService.updatePostCodeData(postId, zipCodeData);
         return cityService.updateCity(cityId, city);
     }
 

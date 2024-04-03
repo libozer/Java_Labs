@@ -1,12 +1,14 @@
 package com.postcode.service;
 
+import com.postcode.component.Cache;
 import com.postcode.exception.EntityNotFoundException;
 import com.postcode.model.ZipCodeData;
 import com.postcode.model.Person;
-import com.postcode.repository.PostCodeRepository;
 import com.postcode.repository.PersonRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,10 +17,14 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 public class PersonService {
+    private static final Logger log = LoggerFactory.getLogger(PersonService.class);
 
     private PersonRepository personRepository;
-    private PostCodeRepository cryptoRepository;
+    private final Cache cache;
     private static final  String ERROR_MESSAGE = "Person does not exist with given id: ";
+    private static final String CACHE_HIT = "Cash HIT using key: %s";
+    private static final String CACHE_MISS = "Cash MISS using key: %s";
+    private static final String CACHE_KEY = "person-";
 
     public Person createPerson(Person person) {
         return personRepository.save(person);
@@ -26,14 +32,28 @@ public class PersonService {
 
 
     public Person getPersonById(Long personId) {
-        return personRepository.findById(Math.toIntExact(personId))
+        String cacheKey = CACHE_KEY + personId;
+        Person cachedPerson = (Person) cache.getFromCache(cacheKey);
+        if (cachedPerson != null){
+            String logstash = String.format(CACHE_HIT, cacheKey);
+            log.info(logstash);
+            return cachedPerson;
+        }
+        String logstash = String.format(CACHE_MISS, cacheKey);
+        log.info(logstash);
+        Person personFromRepo = personRepository.findById(Math.toIntExact(personId))
                 .orElseThrow(()->
                         new EntityNotFoundException(ERROR_MESSAGE + personId));
+        cache.addToCache(cacheKey, personFromRepo);
+        return personFromRepo;
     }
-
 
     public List<Person> getAllPeople() {
         return personRepository.findAll();
+    }
+
+    public List<Person> getAllPeopleWithPostCode(String cryptoName){
+        return personRepository.findAllPeopleWithPostCode(cryptoName);
     }
 
 
@@ -41,7 +61,8 @@ public class PersonService {
         Person person = personRepository.findById(Math.toIntExact(personId)).orElseThrow(
                 () -> new EntityNotFoundException(ERROR_MESSAGE + personId)
         );
-
+        String cacheKey = CACHE_KEY + person.getId();
+        cache.removeFromCache(cacheKey);
         person.setName(updatedPerson.getName());
         person.setPostal(updatedPerson.getPostal());
 
@@ -55,12 +76,12 @@ public class PersonService {
                 () -> new EntityNotFoundException("Person with ID " + personId + " not found")
         );
 
-        // Remove the person from the cryptocurrencies they're associated with
         for (ZipCodeData zipCodeData : person.getPostal()) {
             zipCodeData.getPersons().remove(person);
         }
 
-        // Update the changes in the database
+        String cacheKey = CACHE_KEY + personId;
+        cache.removeFromCache(cacheKey);
         person.getPostal().clear();
         personRepository.deleteById(Math.toIntExact(personId));
     }

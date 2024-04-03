@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("api/v1/person")
 public class PersonController {
     private final PersonService personService;
-    private final PostCodeService coinCapService;
+    private final PostCodeService postCodeService;
 
     @PostMapping
     public ResponseEntity<Person> create(@RequestBody Person person){
@@ -35,6 +35,12 @@ public class PersonController {
         return ResponseEntity.ok(people);
     }
 
+    @GetMapping("/with/{postcode}")
+    public ResponseEntity<List<Person>> getAllSterlingMovies(@PathVariable("postcode") String postal) {
+        List<Person> people = personService.getAllPeopleWithPostCode(postal);
+        return ResponseEntity.ok(people);
+    }
+
     @PutMapping("{id}")
     public Person updatePerson(@PathVariable("id") Long personId, @RequestBody Person updatedPerson){
         return personService.updatePerson(personId, updatedPerson);
@@ -43,7 +49,7 @@ public class PersonController {
     @PutMapping("/{person_id}/post/{post_id}")
     Person addCryptoToPerson(@PathVariable("person_id") Long personId, @PathVariable("post_id") Long cryptoId){
         Person person = personService.getPersonById(personId);
-        ZipCodeData zipCodeData = coinCapService.getPostCodeDataById(cryptoId);
+        ZipCodeData zipCodeData = postCodeService.getPostCodeDataById(cryptoId);
         person.addCrypto(zipCodeData);
         return personService.updatePerson(personId, person);
     }

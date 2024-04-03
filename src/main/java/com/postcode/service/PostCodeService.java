@@ -1,4 +1,5 @@
 package com.postcode.service;
+import com.postcode.component.Cache;
 import com.postcode.exception.EntityNotFoundException;
 import com.postcode.model.City;
 import com.postcode.model.ZipCodeData;
@@ -7,6 +8,8 @@ import com.postcode.model.PostCodeData;
 import com.postcode.repository.CityRepository;
 import com.postcode.repository.PostCodeRepository;
 import com.postcode.repository.PersonRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,18 +18,23 @@ import java.util.List;
 @Service
 public class PostCodeService {
     private static final String POSTCODE_API_URL = "https://api.postcodes.io/postcodes/%s";
-
+    private static final Logger log = LoggerFactory.getLogger(PostCodeService.class);
     private final RestTemplate restTemplate;
-    private final PostCodeRepository cryptoRepository;
+    private final PostCodeRepository postRepository;
     private final PersonRepository personRepository;
     private final CityRepository cityRepository;
+    private final Cache cache;
     private static final String ERROR_MESSAGE = "PostCode does not exist with given id: ";
+    private static final String CACHE_KEY = "postcode-";
+    private static final String CACHE_HIT = "Cash HIT using key: %s";
+    private static final String CACHE_MISS = "Cash MISS using key: %s";
 
-    public PostCodeService(RestTemplate restTemplate, PostCodeRepository cryptoRepository, PersonRepository personRepository, CityRepository cityRepository) {
+    public PostCodeService(RestTemplate restTemplate, PostCodeRepository postRepository, PersonRepository personRepository, CityRepository cityRepository, Cache cache) {
         this.restTemplate = restTemplate;
-        this.cryptoRepository = cryptoRepository;
+        this.postRepository = postRepository;
         this.personRepository = personRepository;
         this.cityRepository = cityRepository;
+        this.cache = cache;
     }
 
     public ZipCodeData createPostCode(String post){
@@ -34,50 +42,68 @@ public class PostCodeService {
         PostCodeData postCodeData = restTemplate.getForObject(apiUrl, PostCodeData.class);
         assert postCodeData != null;
         ZipCodeData zipCodeData = postCodeData.getResult();
-        return cryptoRepository.save(zipCodeData);
+        return postRepository.save(zipCodeData);
     }
 
     public ZipCodeData getPostCodeDataById(Long postId) {
-        return cryptoRepository.findById(Math.toIntExact(postId)).orElseThrow(
+        return postRepository.findById(Math.toIntExact(postId)).orElseThrow(
                 () -> new EntityNotFoundException(ERROR_MESSAGE + postId)
         );
     }
 
     public ZipCodeData getPostCodeDataByName(String name) {
-        return cryptoRepository.findByPostcode(name);
+        String cacheKey = CACHE_KEY + name;
+        ZipCodeData cachedPost = (ZipCodeData) cache.getFromCache(cacheKey);
+        if (cachedPost != null){
+            String logstash = String.format(CACHE_HIT,cacheKey);
+            log.info(logstash);
+            return cachedPost;
+        }
+        String logstash = String.format(CACHE_MISS, cacheKey);
+        log.info(logstash);
+        ZipCodeData zipCodeData = postRepository.findByPostcode(name);
+        cache.addToCache(cacheKey, zipCodeData);
+        return zipCodeData;
     }
 
     public List<ZipCodeData> getAllPostCodeData() {
-        return cryptoRepository.findAll();
+        return postRepository.findAll();
     }
 
     public ZipCodeData updatePostCodeData(Long postId, ZipCodeData updatedZipCodeData) {
-        ZipCodeData zipCodeData = cryptoRepository.findById(Math.toIntExact(postId)).orElseThrow(
+        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(
                 () -> new EntityNotFoundException(ERROR_MESSAGE + postId)
         );
+        String cacheKey = CACHE_KEY + zipCodeData.getPostcode();
+        cache.removeFromCache(cacheKey);
 
         zipCodeData.setPostcode(updatedZipCodeData.getPostcode());
         zipCodeData.setCity(updatedZipCodeData.getCity());
         zipCodeData.setPersons(updatedZipCodeData.getPersons());
 
-        return cryptoRepository.save(zipCodeData);
+        cache.addToCache(cacheKey, zipCodeData);
+        return postRepository.save(zipCodeData);
     }
 
     public void deletePostCode(Long postId) {
-        ZipCodeData zipCodeData = cryptoRepository.findById(Math.toIntExact(postId)).orElseThrow(
+        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(
                 () -> new EntityNotFoundException(ERROR_MESSAGE + postId)
         );
-        if (!zipCodeData.getPersons().isEmpty()){
+        if (zipCodeData.getPersons().size() != 0) {
             throw new EntityNotFoundException("Can't delete postcode " + postId + " because people are using it. Try deleting this post from a specified person.");
         }
-        if (zipCodeData.getCity() != null){
+        if (zipCodeData.getCity() != null) {
             throw new EntityNotFoundException("Can't delete postcode " + postId + " because it is in a city. Try deleting this post from a specified city.");
         }
-        cryptoRepository.deleteById(Math.toIntExact(postId));
+        else if (zipCodeData != null) {
+            String cacheKey = CACHE_KEY + zipCodeData.getPostcode();
+            cache.removeFromCache(cacheKey);
+            postRepository.deleteById(Math.toIntExact(postId));
+        }
     }
 
     public void deletePostCodeFromPerson(Long postId, Long personId) {
-        ZipCodeData zipCodeData = cryptoRepository.findById(Math.toIntExact(postId)).orElseThrow(
+        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(
                 () -> new EntityNotFoundException(ERROR_MESSAGE + postId)
         );
         Person person = personRepository.findById(Math.toIntExact(personId)).orElseThrow(
@@ -87,11 +113,11 @@ public class PostCodeService {
         person.getPostal().remove(zipCodeData);
         zipCodeData.getPersons().remove(person);
         personRepository.save(person);
-        cryptoRepository.save(zipCodeData);
+        postRepository.save(zipCodeData);
     }
 
     public void deletePostCodeFromCity(Long postId, Long cityId) {
-        ZipCodeData zipCodeData = cryptoRepository.findById(Math.toIntExact(postId)).orElseThrow(
+        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(
                 () -> new EntityNotFoundException(ERROR_MESSAGE + postId)
         );
         City city = cityRepository.findById(Math.toIntExact(cityId)).orElseThrow(
@@ -102,4 +128,5 @@ public class PostCodeService {
         zipCodeData.setCity(null);
         cityRepository.save(city);
     }
+
 }
