@@ -21,6 +21,7 @@ public class PostCodeController {
     private boolean isValidPostCode(String postCode) {
         return allowedPostalCodes.contains(postCode.toLowerCase());
     }
+
     @GetMapping
     public ResponseEntity<List<ZipCodeData>> getAllPostCodeData(){
         List<ZipCodeData> data = postCodeService.getAllPostCodeData();

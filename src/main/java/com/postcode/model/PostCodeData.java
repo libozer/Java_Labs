@@ -12,5 +12,4 @@ import lombok.Setter;
 public class PostCodeData {
     private String status;
     private ZipCodeData result;
-
 }

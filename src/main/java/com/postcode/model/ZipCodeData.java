@@ -20,7 +20,6 @@ public class ZipCodeData {
     @Column(name = "postId")
     private Long postId;
 
-
     private String postcode;
     private String eastings;
     private String northings;
@@ -30,14 +29,10 @@ public class ZipCodeData {
     private String outcode;
     private String nuts;
 
-
-
-
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "city_id")
     private City city;
-
 
     @JsonIgnore
     @ManyToMany(mappedBy = "postal")

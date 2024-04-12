@@ -1,4 +1,5 @@
 package com.postcode.service;
+
 import com.postcode.component.Cache;
 import com.postcode.exception.EntityNotFoundException;
 import com.postcode.model.City;
@@ -16,11 +17,11 @@ import java.util.List;
 public class CityService {
     private final CityRepository cityRepository;
     private final Cache cache;
-    private static final Logger log = LoggerFactory.getLogger(CityService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CityService.class);
     private static final String ERROR_MESSAGE = "City does not exist with given id: ";
     private static final String CACHE_KEY = "city-";
-    private static final String CACHE_HIT = "Cash HIT using key: %s";
-    private static final String CACHE_MISS = "Cash MISS using key: %s";
+    private static final String CACHE_HIT = "Cash HAVE using key: %s";
+    private static final String CACHE_MISS = "Cash EMPTY using key: %s";
 
     public City createCity(City city) {
         return cityRepository.save(city);
@@ -31,27 +32,23 @@ public class CityService {
         City cachedCity = (City) cache.getFromCache(cacheKey);
         if (cachedCity != null){
             String logstash = String.format(CACHE_HIT, cacheKey);
-            log.info(logstash);
+            LOG.info(logstash);
             return cachedCity;
         }
         String logstash = String.format(CACHE_MISS, cacheKey);
-        log.info(logstash);
+        LOG.info(logstash);
         City chainFromRepo = cityRepository.findById(Math.toIntExact(cityId))
                 .orElseThrow(()-> new EntityNotFoundException(ERROR_MESSAGE + cityId));
         cache.addToCache(cacheKey, chainFromRepo);
         return chainFromRepo;
     }
 
-
     public List<City> getAllCities() {
         return cityRepository.findAll();
     }
 
-
     public City updateCity(Long cityId, City updatedCity) {
-        City city = cityRepository.findById(Math.toIntExact(cityId)).orElseThrow(
-                () -> new EntityNotFoundException(ERROR_MESSAGE + cityId)
-        );
+        City city = cityRepository.findById(Math.toIntExact(cityId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + cityId));
         String cacheKey = CACHE_KEY + city.getId();
         cache.removeFromCache(cacheKey);
         city.setName(updatedCity.getName());
@@ -60,11 +57,8 @@ public class CityService {
         return cityRepository.save(city);
     }
 
-
     public void deleteCity(Long cityId) {
-        City city = cityRepository.findById(Math.toIntExact(cityId)).orElseThrow(
-                () -> new EntityNotFoundException(ERROR_MESSAGE + cityId)
-        );
+        City city = cityRepository.findById(Math.toIntExact(cityId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + cityId));
 
         if (city != null){
             for (ZipCodeData zipCodeData : city.getPostal()) {

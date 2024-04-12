@@ -14,4 +14,5 @@ public interface PersonRepository extends JpaRepository<Person, Integer> {
             "WHERE c.postcode = :name " +
             "ORDER BY p.name")
     List<Person> findAllPeopleWithPostCode(@Param("name") String genreName);
+
 }
