@@ -60,7 +60,7 @@ public class PersonService {
         cache.removeFromCache(cacheKey);
         person.setName(updatedPerson.getName());
         person.setPostal(updatedPerson.getPostal());
-
+        cache.addToCache(cacheKey,person);
         return personRepository.save(person);
     }
 

@@ -15,7 +15,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
-@RestControllerAdvice // автоматический контролирует все ошибки
+@RestControllerAdvice 
 public class ExceptionApiHandler {
     private static final Logger LOG = LoggerFactory.getLogger(ExceptionApiHandler.class);
 

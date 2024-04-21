@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -37,4 +38,9 @@ public class ZipCodeData {
     @JsonIgnore
     @ManyToMany(mappedBy = "postal")
     private Set<com.postcode.model.Person> persons;
+
+    public ZipCodeData(Long id){
+        this.postId = id;
+    }
+
 }

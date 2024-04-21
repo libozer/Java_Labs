@@ -10,6 +10,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PostCodeData {
-    private String status;
     private ZipCodeData result;
+    private String status;
+
 }

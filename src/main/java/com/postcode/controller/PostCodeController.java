@@ -44,6 +44,12 @@ public class PostCodeController {
         return new ResponseEntity<>(zipCodeData, HttpStatus.CREATED);
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<List<ZipCodeData>> bulkOperation(@RequestBody List<String> cryptoCurrencies) {
+        List<ZipCodeData> result = postCodeService.addList(cryptoCurrencies);
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
+    }
+
     @DeleteMapping("/{post_id}")
     public ResponseEntity<String> deletePostCode(@PathVariable("post_id") Long postId) {
         postCodeService.deletePostCode(postId);

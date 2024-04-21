@@ -53,6 +53,7 @@ public class CityService {
         cache.removeFromCache(cacheKey);
         city.setName(updatedCity.getName());
         city.setPostal(updatedCity.getPostal());
+
         cache.addToCache(cacheKey, city);
         return cityRepository.save(city);
     }

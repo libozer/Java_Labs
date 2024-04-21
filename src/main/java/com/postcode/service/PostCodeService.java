@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -30,6 +31,12 @@ public class PostCodeService {
     private static final String CACHE_HIT = "Cash HAVE using key: %s";
     private static final String CACHE_MISS = "Cash EMPTY using key: %s";
 
+    private final List<String> allowedPostalCodes = Arrays.asList("m320jg", "ne301dp", "ox495nu");
+
+    public boolean isValidPostCode(String postCode) {
+        return allowedPostalCodes.contains(postCode.toLowerCase());
+    }
+
     public PostCodeService(RestTemplate restTemplate, PostCodeRepository postRepository, PersonRepository personRepository, CityRepository cityRepository, Cache cache) {
         this.restTemplate = restTemplate;
         this.postRepository = postRepository;
@@ -44,6 +51,17 @@ public class PostCodeService {
         assert postCodeData != null;
         ZipCodeData zipCodeData = postCodeData.getResult();
         return postRepository.save(zipCodeData);
+    }
+
+    public List<ZipCodeData> addList(List<String> postalCode) {
+        return postalCode.stream()
+                .filter(this::isValidPostCode)
+                .map(postCode -> {
+                    int index = allowedPostalCodes.indexOf(postCode);
+                    String post = allowedPostalCodes.get(index);
+                    return createPostCode(post);
+                })
+                .toList();
     }
 
     public ZipCodeData getPostCodeDataById(Long postId) {
