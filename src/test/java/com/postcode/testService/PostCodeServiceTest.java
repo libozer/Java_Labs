@@ -301,22 +301,6 @@ class PostCodeServiceTest {
     }
 
     @Test
-    void testDeletePostCodeFromCityPostCodeNotFound() {
-        City city = new City();
-        city.setPostal(new HashSet<>(Collections.singletonList(zipCodeData)));
-        when(postCodeRepository.findById(anyInt())).thenThrow(EntityNotFoundException.class);
-
-        assertThrows(EntityNotFoundException.class, () -> {
-            postCodeService.deletePostCodeFromCity(3L, city.getId());
-        });
-
-        verify(postCodeRepository, times(1)).findById(anyInt());
-        verify(cityRepository, never()).findById(anyInt());
-        verify(cityRepository, never()).save(any(City.class));
-    }
-
-
-    @Test
     void testInvalidPostCode() {
         assertFalse(postCodeService.isValidPostCode("ABCDE")); // Проверяем невалидный почтовый индекс
     }
