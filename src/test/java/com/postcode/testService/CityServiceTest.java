@@ -146,10 +146,13 @@ class CityServiceTest {
 
     @Test
     void testUpdateCityNotFound() {
-        when(cityRepository.findById(1)).thenReturn(Optional.empty());
-        assertThrows(EntityNotFoundException.class, () -> cityService.updateCity(1L, new City()));
+        when(cityRepository.findById(1)).thenThrow(EntityNotFoundException.class);
+        assertThrows(EntityNotFoundException.class, () -> {
+            cityService.updateCity(1L, new City());
+        });
         verify(cityRepository, times(1)).findById(1);
     }
+
 
     @Test
     void testDeleteCityNotFound() {
