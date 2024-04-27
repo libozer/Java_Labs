@@ -2,10 +2,15 @@ package com.postcode.controller;
 
 import com.postcode.model.ZipCodeData;
 import com.postcode.service.PostCodeService;
+import com.postcode.service.CounterService;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,8 +27,11 @@ public class PostCodeController {
         return allowedPostalCodes.contains(postCode.toLowerCase());
     }
 
+    private static final Logger LOG = LoggerFactory.getLogger(PostCodeController.class);
+
     @GetMapping
     public ResponseEntity<List<ZipCodeData>> getAllPostCodeData(){
+        CounterService.enhanceCounter();
         List<ZipCodeData> data = postCodeService.getAllPostCodeData();
         return ResponseEntity.ok(data);
     }
