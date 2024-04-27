@@ -13,14 +13,14 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @ExtendWith(MockitoExtension.class)
-public class CounterServiceTest {
+class CounterServiceTest {
     private static final Logger LOG = LoggerFactory.getLogger(CounterServiceTest.class);
 
     @InjectMocks
     private CounterService counterService;
 
     @Test
-    public void testEnhanceCounter() {
+    void testEnhanceCounter() {
         // Arrange
         AtomicInteger initialCounter = new AtomicInteger(0);
         CounterService.serviceCounter.setCounterRequest(initialCounter);
@@ -34,7 +34,7 @@ public class CounterServiceTest {
     }
 
     @Test
-    public void testGetCounter() {
+    void testGetCounter() {
         // Arrange
         AtomicInteger initialCounter = new AtomicInteger(5);
         CounterService.serviceCounter.setCounterRequest(initialCounter);

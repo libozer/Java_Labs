@@ -16,7 +16,7 @@ public final class CounterService {
     private CounterService() {
     }
 
-    public static ServiceCounter serviceCounter = new ServiceCounter();
+    public static final ServiceCounter serviceCounter = new ServiceCounter();
 
     private static AtomicInteger newEnhanceCounter = new AtomicInteger(0);
 
