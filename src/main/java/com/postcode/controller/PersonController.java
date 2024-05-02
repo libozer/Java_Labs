@@ -50,7 +50,7 @@ public class PersonController {
     Person addCryptoToPerson(@PathVariable("person_id") Long personId, @PathVariable("post_id") Long cryptoId){
         Person person = personService.getPersonById(personId);
         ZipCodeData zipCodeData = postCodeService.getPostCodeDataById(cryptoId);
-        person.addCrypto(zipCodeData);
+        person.addPostCode(zipCodeData);
         return personService.updatePerson(personId, person);
     }
 

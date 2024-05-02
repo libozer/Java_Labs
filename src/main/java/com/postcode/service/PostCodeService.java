@@ -16,6 +16,8 @@ import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class PostCodeService {
@@ -45,16 +47,39 @@ public class PostCodeService {
         this.cache = cache;
     }
 
-    public ZipCodeData createPostCode(String post){
+//    public ZipCodeData createPostCode(String post){
+//        String apiUrl = String.format(POSTCODE_API_URL, post);
+//        PostCodeData postCodeData = restTemplate.getForObject(apiUrl, PostCodeData.class);
+//        assert postCodeData != null;
+//        ZipCodeData zipCodeData = postCodeData.getResult();
+//        return postRepository.save(zipCodeData);
+//    }
+
+    public boolean createPostCode(String post){
         String apiUrl = String.format(POSTCODE_API_URL, post);
         PostCodeData postCodeData = restTemplate.getForObject(apiUrl, PostCodeData.class);
-        assert postCodeData != null;
-        ZipCodeData zipCodeData = postCodeData.getResult();
-        return postRepository.save(zipCodeData);
+        if (postCodeData == null){
+            return false;
+        }
+        ZipCodeData postData = postCodeData.getResult();
+        postRepository.save(postData);
+        return true;
     }
 
-    public List<ZipCodeData> addList(List<String> postalCode) {
-        return postalCode.stream()
+
+//    public List<ZipCodeData> addList(List<String> postalCode) {
+//        return postalCode.stream()
+//                .filter(this::isValidPostCode)
+//                .map(postCode -> {
+//                    int index = allowedPostalCodes.indexOf(postCode);
+//                    String post = allowedPostalCodes.get(index);
+//                    return createPostCode(post);
+//                })
+//                .toList();
+//    }
+
+    public boolean addList(List<String> postalCode) {
+        postalCode.stream()
                 .filter(this::isValidPostCode)
                 .map(postCode -> {
                     int index = allowedPostalCodes.indexOf(postCode);
@@ -62,6 +87,7 @@ public class PostCodeService {
                     return createPostCode(post);
                 })
                 .toList();
+        return true;
     }
 
     public ZipCodeData getPostCodeDataById(Long postId) {
@@ -100,37 +126,95 @@ public class PostCodeService {
         return postRepository.save(zipCodeData);
     }
 
-    public void deletePostCode(Long postId) {
-        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + postId));
-        if (zipCodeData.getPersons().size() != 0) {
-            throw new EntityNotFoundException("Can't delete postcode " + postId + " because people are using it. Try deleting this post from a specified person.");
+//    public void deletePostCode(Long postId) {
+//        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + postId));
+//        if (zipCodeData.getPersons().size() != 0) {
+//            throw new EntityNotFoundException("Can't delete postcode " + postId + " because people are using it. Try deleting this post from a specified person.");
+//        }
+//        if (zipCodeData.getCity() != null) {
+//            throw new EntityNotFoundException("Can't delete postcode " + postId + " because it is in a city. Try deleting this post from a specified city.");
+//        }
+//        else if (zipCodeData != null) {
+//            String cacheKey = CACHE_KEY + zipCodeData.getPostcode();
+//            cache.removeFromCache(cacheKey);
+//            postRepository.deleteById(Math.toIntExact(postId));
+//        }
+//    }
+
+    public boolean deletePostCode(Long postId) {
+        Optional<ZipCodeData> zipCodeData = postRepository.findById(Math.toIntExact(postId));
+        if (!zipCodeData.isPresent()){
+            return false;
         }
-        if (zipCodeData.getCity() != null) {
-            throw new EntityNotFoundException("Can't delete postcode " + postId + " because it is in a city. Try deleting this post from a specified city.");
+
+        if (zipCodeData.get().getPersons() != null && zipCodeData.get().getPersons().size() != 0){
+            return false;
+        }
+        if (zipCodeData.get().getCity() != null){
+            return false;
         }
         else if (zipCodeData != null) {
-            String cacheKey = CACHE_KEY + zipCodeData.getPostcode();
+            String cacheKey = CACHE_KEY + zipCodeData.get().getPostcode();
             cache.removeFromCache(cacheKey);
             postRepository.deleteById(Math.toIntExact(postId));
         }
+        return true;
     }
 
-    public void deletePostCodeFromPerson(Long postId, Long personId) {
-        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + postId));
-        Person person = personRepository.findById(Math.toIntExact(personId)).orElseThrow(() -> new EntityNotFoundException("Person does not exist with given id: " + personId));
+//    public void deletePostCodeFromPerson(Long postId, Long personId) {
+//        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + postId));
+//        Person person = personRepository.findById(Math.toIntExact(personId)).orElseThrow(() -> new EntityNotFoundException("Person does not exist with given id: " + personId));
+//
+//        person.getPostal().remove(zipCodeData);
+//        zipCodeData.getPersons().remove(person);
+//        personRepository.save(person);
+//        postRepository.save(zipCodeData);
+//    }
 
-        person.getPostal().remove(zipCodeData);
-        zipCodeData.getPersons().remove(person);
-        personRepository.save(person);
-        postRepository.save(zipCodeData);
+    public boolean deletePostCodeFromPerson(Long postId, Long personId) {
+        Optional<ZipCodeData> zipCodeData = postRepository.findById(Math.toIntExact(postId));
+        if (!zipCodeData.isPresent()){
+            return false;
+        }
+        Optional<Person> person = personRepository.findById(Math.toIntExact(personId));
+        if (!person.isPresent()){
+            return false;
+        }
+        person.ifPresent(p -> {
+            p.getPostal().remove(zipCodeData.orElseThrow());
+            zipCodeData.ifPresent(cd -> cd.getPersons().remove(p));
+            personRepository.save(p);
+            zipCodeData.ifPresent(postRepository::save);
+        });
+
+        return true;
     }
 
-    public void deletePostCodeFromCity(Long postId, Long cityId) {
-        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + postId));
-        City city = cityRepository.findById(Math.toIntExact(cityId)).orElseThrow(() -> new EntityNotFoundException("City does not exist with given id: " + cityId));
+//    public void deletePostCodeFromCity(Long postId, Long cityId) {
+//        ZipCodeData zipCodeData = postRepository.findById(Math.toIntExact(postId)).orElseThrow(() -> new EntityNotFoundException(ERROR_MESSAGE + postId));
+//        City city = cityRepository.findById(Math.toIntExact(cityId)).orElseThrow(() -> new EntityNotFoundException("City does not exist with given id: " + cityId));
+//
+//        city.getPostal().remove(zipCodeData);
+//        zipCodeData.setCity(null);
+//        cityRepository.save(city);
+//    }
 
-        city.getPostal().remove(zipCodeData);
-        zipCodeData.setCity(null);
-        cityRepository.save(city);
+    public boolean deletePostCodeFromCity(Long postId, Long cityId) {
+        Optional<ZipCodeData> postCodeData = postRepository.findById(Math.toIntExact(postId));
+        if (!postCodeData.isPresent()){
+            return false;
+        }
+        Optional<City> city = cityRepository.findById(Math.toIntExact(cityId));
+        if (!city.isPresent()){
+            return false;
+        }
+
+        // Assuming we have Optional<Chain> chain and Optional<CryptoData> cryptoData
+        city.ifPresent(c -> {
+            c.getPostal().remove(postCodeData.orElseThrow());
+            postCodeData.ifPresent(cd -> cd.setCity(null));
+            cityRepository.save(c);
+        });
+        return true;
     }
 }

@@ -27,7 +27,7 @@ public class Person {
             inverseJoinColumns = @JoinColumn(name = "postData_postId", referencedColumnName = "postId"))
     private Set<ZipCodeData> postal;
 
-    public void addCrypto(ZipCodeData zipCodeData){
+    public void addPostCode(ZipCodeData zipCodeData){
         postal.add(zipCodeData);
     }
 }

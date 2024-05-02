@@ -44,7 +44,7 @@ public class CityController {
     City addCryptoToCity(@PathVariable("city_id") Long cityId, @PathVariable("post_id") Long postId){
         City city = cityService.getCityById(cityId);
         ZipCodeData zipCodeData = postCodeService.getPostCodeDataById(postId);
-        city.addCrypto(zipCodeData);
+        city.addPostCode(zipCodeData);
         zipCodeData.setCity(city);
         postCodeService.updatePostCodeData(postId, zipCodeData);
         return cityService.updateCity(cityId, city);

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Postal Code</title>
+
+    <style>
+        body {
+            background-color: #252422;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .container-buttons{
+            width: 350px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .table {
+            border-spacing: 0;
+            empty-cells: hide;
+            width: 100%;
+        }
+        td {
+            padding: 10px 20px;
+            text-align: center;
+            border-bottom: 1px solid #252422;
+            transition: all 0.5s linear;
+        }
+        td:first-child {
+            text-align: left;
+            color: #252422;
+            font-weight: bold;
+        }
+        th {
+            padding: 10px 20px;
+            color: #252422;
+            border-bottom: 1px solid #252422;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        td:nth-child(even) {
+            background: #F24B4B;
+        }
+        td:nth-child(odd) {
+            background: #F2F0D8;
+        }
+        th:nth-child(even)  {
+            background: #F24B4B;
+        }
+        th:nth-child(odd)  {
+            background: #F2F0D8;
+        }
+        .round-top {
+            border-top-left-radius: 5px;
+        }
+        .round-bottom {
+            border-bottom-left-radius: 5px;
+        }
+        tr:hover td{
+            background: #D1C7BF;
+            font-weight: bold;
+        }
+        .mt-3 a {
+            margin-right: 10px;
+            text-align: center;
+        }
+        caption {
+            caption-side: top;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #252422;
+            padding: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            background-color: #F2F0D8;
+            color: #fff7f7;
+            border: none;
+            border-radius: 3px;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        a.btn {
+            text-decoration: none;
+            color: #6b5770;
+            background-image: linear-gradient(90deg, #fd7f34, #bd155b);
+            display: inline-block;
+            padding: 10px 20px;
+            border: 1px solid;
+            position: relative;
+            z-index: 0;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin: 0 15px 15px 0;
+            outline: none;
+            cursor: pointer;
+            user-select: none;
+            appearance: none;
+            touch-action: manipulation;
+        }
+
+        a.btn:hover {
+            color: #fff;
+            transition: .3s;
+        }
+        a.btn:before  {
+            content: '';
+            position: absolute;
+            left: -2px;
+            top: -2px;
+            width: calc(100% + 4px);
+            height: calc(100% + 4px);
+            background: linear-gradient(90deg, #fd7f34, #bd155b);
+            z-index: -2;
+            transition: .4s;
+            border-radius: 5px;
+        }
+
+        a.btn:after  {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #fff, #fff);
+            z-index: -1;
+            transition: .4s;
+            border-radius: 4px;
+        }
+        a.btn:hover:after {
+            background: linear-gradient(90deg, #fd7f34, #bd155b);
+        }
+        a.btn:active:after {
+            background: linear-gradient(90deg, #d96d2d, #760f3a);
+        }
+        a.btn:focus-visible {
+            box-shadow: 0 0 0 3px #fd7f34;
+        }
+        a.btn:disabled {
+            pointer-events: none;
+        }
+        a.btn:disabled:before {
+            filter: grayscale(100%);
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-5">
+    <table class="table table-striped">
+        <caption>List of PostCode</caption>
+        <thead class="thead-dark">
+        <tr>
+            <th>PostCode</th>
+            <th>country</th>
+            <th>Region</th>
+            <th>Nuts</th>
+            <th>Incode</th>
+            <th>Outcode</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="post : ${postCode}">
+            <td th:text="${post.postcode}"></td>
+            <td th:text="${post.country}"></td>
+            <td th:text="${post.region}"></td>
+            <td th:text="${post.nuts}"></td>
+            <td th:text="${post.incode}"></td>
+            <td th:text="${post.outcode}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="container mt-5">
+    <table class="table table-striped">
+        <caption>List of Cities</caption>
+        <thead class="thead-dark">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="city : ${cities}">
+            <td th:text="${city.id}"></td>
+            <td th:text="${city.name}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="container mt-5">
+    <table class="table table-striped">
+        <caption>List of People</caption>
+        <thead class="thead-dark">
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="person : ${people}">
+            <td th:text="${person.id}"></td>
+            <td th:text="${person.name}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<br>
+<br>
+<div class="container-buttons ">
+    <h1>Operations</h1>
+    <a href="http://localhost:8080/api/v1/postcode/create_postcodedata" class="btn">Add PostCode</a><br>
+    <a href="http://localhost:8080/api/v1/postcode/deletePostCodeHTML" class="btn">DeletePostCode</a><br>
+    <a href="http://localhost:8080/api/v1/postcode/addPostCodeToCityHTML" class="btn">Add postcode to City</a><br>
+    <a href="http://localhost:8080/api/v1/postcode/addPostCodeToPersonHTML" class="btn">Add postcode to Person</a><br>
+    <a href="http://localhost:8080/api/v1/postcode/deletePostCodeFromCityHTML" class="btn">DeletePostCodeFromCity</a><br>
+    <a href="http://localhost:8080/api/v1/postcode/deletePostCodeFromPersonHTML" class="btn">DeletePostCodeFromPerson</a><br>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+</body>
+</body>
+</html>

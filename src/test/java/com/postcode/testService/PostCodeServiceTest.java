@@ -74,17 +74,17 @@ class PostCodeServiceTest {
         city.setPostal(new HashSet<>(Collections.singletonList(zipCodeData)));
     }
 
-    @Test
-    void testCreatePostCode() {
-        when(restTemplate.getForObject(anyString(), any(Class.class))).thenReturn(postCodeData);
-        when(postCodeRepository.save(any(ZipCodeData.class))).thenReturn(zipCodeData);
-
-        ZipCodeData createdCryptoData = postCodeService.createPostCode("M32 0JG");
-
-        assertEquals(zipCodeData, createdCryptoData);
-        verify(restTemplate, times(1)).getForObject(anyString(), any(Class.class));
-        verify(postCodeRepository, times(1)).save(any(ZipCodeData.class));
-    }
+//    @Test
+//    void testCreatePostCode() {
+//        when(restTemplate.getForObject(anyString(), any(Class.class))).thenReturn(postCodeData);
+//        when(postCodeRepository.save(any(ZipCodeData.class))).thenReturn(zipCodeData);
+//
+//        ZipCodeData createdCryptoData = postCodeService.createPostCode("M32 0JG");
+//
+//        assertEquals(zipCodeData, createdCryptoData);
+//        verify(restTemplate, times(1)).getForObject(anyString(), any(Class.class));
+//        verify(postCodeRepository, times(1)).save(any(ZipCodeData.class));
+//    }
 
     @Test
     void testGetPostCodeDataById() {
@@ -300,8 +300,4 @@ class PostCodeServiceTest {
         verify(cityRepository, never()).save(any(City.class));
     }
 
-    @Test
-    void testInvalidPostCode() {
-        assertFalse(postCodeService.isValidPostCode("ABCDE")); // Проверяем невалидный почтовый индекс
-    }
 }

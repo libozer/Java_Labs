@@ -23,7 +23,7 @@ public class City {
     @OneToMany(mappedBy = "city", cascade = CascadeType.ALL)
     private Set<ZipCodeData> postal;
 
-    public void addCrypto(ZipCodeData zipCodeData) {
+    public void addPostCode(ZipCodeData zipCodeData) {
         postal.add(zipCodeData);
     }
 
